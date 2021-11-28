@@ -1,0 +1,59 @@
+service: serverless-photo-app  ##name of the service
+
+configValidationMode: error
+
+plugins:
+  - serverless-python-requirements
+  - serverless-deployment-bucket
+provider:
+  name: aws
+  runtime: python3.7 ##python version
+  region: us-east-1 ##region of s3 bucket with model 
+  lambdaHashingVersion: 20201221
+
+  deploymentBucket:
+    name: serverless-photo-app ## name of s3 bucket with model 
+    serverSideEncryption: AES256
+
+  iamRoleStatements: ## allow role to read from s3 
+    - Effect: Allow
+      Action: 
+        - s3:GetObject
+        - s3:PutObject
+      Resource:
+        - "arn:aws:s3:::serverless-photo-app/*"  ## name of s3 bucket with model 
+
+custom:
+  pythonRequirements:
+    pythonBin: python3
+    slim: true
+    layer: true ## add requirements as layer
+    useDownloadCache: true 
+    useStaticCache: true
+    noDeploy:
+      - pytest
+
+functions:
+  mange_photos_lambda:
+    name:  mange_photos_lambda ## aws lambda function
+    description: serverless photo upload download 
+    handler: main.lambda_handler ## file with lambda_handler function
+    layers:
+      - Ref: PythonRequirementsLambdaLayer ## add requirements as layer
+    events:  
+      - http: 
+          path:  /download-image
+          method: GET
+          cors: true
+      - http: 
+          path:  /upload-image
+          method: POST
+          cors: true
+          
+      
+          
+     
+
+
+
+
